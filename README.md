@@ -69,19 +69,33 @@ Identify high-risk customers for targeted retention campaigns.
 
 ## 📂 Project Structure
 telecom-churn-intelligence
+
 │
+
 ├── app.py # Streamlit dashboard
+
 ├── api.py # Flask API
+
 ├── requirements.txt
+
 │
+
 ├── data
+
 │ └── Telco-Customer-Churn.csv
+
 │
+
 ├── models
+
 │ ├── churn_model.pkl
+
 │ └── model_features.pkl
+
 │
+
 └── notebook
+
 └── churn_analysis.ipynb
 
 ---
