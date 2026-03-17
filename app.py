@@ -99,16 +99,11 @@ def predict_churn(data):
 
     input_df = pd.DataFrame([data])
 
-    # expected columns from training
-    expected_cols = model.feature_names_in_
-
-    for col in expected_cols:
-        if col not in input_df.columns:
-            input_df[col] = None
-
-    input_df = input_df[expected_cols]
-
-    probability = model.predict_proba(input_df)[0][1]
+    try:
+        probability = model.predict_proba(input_df)[0][1]
+    except Exception:
+        st.error("Input format mismatch with trained model.")
+        probability = 0.0
 
     return probability
 
@@ -500,13 +495,21 @@ elif page == "Customer Risk Ranking":
 
     st.title("Top Customers Likely To Churn")
 
-    sample = df.sample(20)
+    sample = df.sample(20).copy()
 
-    sample["Risk Score"] = np.random.rand(20)
+# Remove columns the model should not see
+    features_df = sample.drop(columns=["customerID", "Churn"], errors="ignore")
+
+# Predict churn probability
+    risk_scores = model.predict_proba(features_df)[:,1]
+
+    sample["Risk Score"] = risk_scores
 
     sample["Risk Level"] = sample["Risk Score"].apply(
-        lambda x: "High Risk" if x > 0.6 else "Medium Risk" if x > 0.3 else "Low Risk"
+    lambda x: "High Risk" if x > 0.6 else "Medium Risk" if x > 0.3 else "Low Risk"
     )
+
+    sample = sample.sort_values("Risk Score", ascending=False)
 
     st.dataframe(sample[["customerID","Risk Score","Risk Level"]])
 
