@@ -405,11 +405,6 @@ elif page == "Churn Prediction":
     # -------- Prediction --------
         probability = model.predict_proba(input_encoded)[0][1]
 
-    # -------- Prediction --------
-    
-
-        probability = model.predict_proba(input_df)[0][1]
-
         st.subheader("AI Risk Score")
 
         st.progress(float(probability))
