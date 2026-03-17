@@ -557,14 +557,23 @@ elif page == "Customer Risk Ranking":
     # remove target + id
     features_df = sample.drop(columns=["customerID","Churn"])
 
+    # Align columns with model training features
+    try:
+        features_df = features_df.reindex(
+            columns=model.feature_names_in_,
+            fill_value=0
+        )
+    except:
+        pass
+
     # Pipeline automatically preprocesses
-    risk_scores = model.predict_proba(features_df)[:,1]
+    risk_scores = model.predict_proba(features_df)[:, 1]
 
     sample["Risk Score"] = risk_scores
 
     sample["Risk Level"] = sample["Risk Score"].apply(
-        lambda x: "High Risk" if x > 0.6 else
-                  "Medium Risk" if x > 0.3 else
+        lambda x: "High Risk" if x > 0.45 else
+                  "Medium Risk" if x > 0.25 else
                   "Low Risk"
     )
 
@@ -587,11 +596,13 @@ elif page == "Customer Risk Ranking":
             "Importance": importance
         })
 
-        importance_df = importance_df.sort_values("Importance", ascending=False).head(10)
+        importance_df = importance_df.sort_values(
+            "Importance", ascending=False
+        ).head(10)
 
         st.bar_chart(importance_df.set_index("Feature"))
 
-    except:
+    except Exception as e:
         st.info("Feature importance not available for this model.")
 
 # -------------------------------------------------
