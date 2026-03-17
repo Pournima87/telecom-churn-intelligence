@@ -98,12 +98,17 @@ model, model_features = load_model()
 
 def predict_churn(data):
 
+    # Convert user input to DataFrame
     input_df = pd.DataFrame([data])
 
-    # Match model features and fill missing ones
-    input_df = input_df.reindex(columns=model_features, fill_value=0)
+    # Apply same encoding as training
+    input_encoded = pd.get_dummies(input_df)
 
-    probability = model.predict_proba(input_df)[0][1]
+    # Align with training features
+    input_encoded = input_encoded.reindex(columns=model_features, fill_value=0)
+
+    # Predict
+    probability = model.predict_proba(input_encoded)[0][1]
 
     return probability
 
