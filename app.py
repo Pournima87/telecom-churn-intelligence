@@ -96,8 +96,20 @@ model = load_model()
 # -------------------------------------------------
 
 def predict_churn(data):
+
     input_df = pd.DataFrame([data])
+
+    # expected columns from training
+    expected_cols = model.feature_names_in_
+
+    for col in expected_cols:
+        if col not in input_df.columns:
+            input_df[col] = None
+
+    input_df = input_df[expected_cols]
+
     probability = model.predict_proba(input_df)[0][1]
+
     return probability
 
 # -------------------------------------------------
@@ -500,15 +512,22 @@ elif page == "Customer Risk Ranking":
 
     st.subheader("Top Churn Drivers")
 
-    importance = model.named_steps["model"].coef_[0]
-    features = model.named_steps["preprocess"].get_feature_names_out()
+    try:
+        lr_model = model.named_steps["model"]
+        preprocessor = model.named_steps["preprocess"]
 
-    importance_df = pd.DataFrame({
-        "Feature": features,
-        "Importance": importance
-    }).sort_values(by="Importance", ascending=False).head(10)
+        importance = lr_model.coef_[0]
+        features = preprocessor.get_feature_names_out()
 
-    st.bar_chart(importance_df.set_index("Feature"))
+        importance_df = pd.DataFrame({
+            "Feature": features,
+            "Importance": importance
+        }).sort_values(by="Importance", ascending=False).head(10)
+
+        st.bar_chart(importance_df.set_index("Feature"))
+
+    except Exception:
+        st.info("Feature importance available only for Logistic Regression.")
 
 # -------------------------------------------------
 # DATASET EXPLORER
