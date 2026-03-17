@@ -410,13 +410,13 @@ elif page == "Churn Prediction":
         st.progress(float(probability))
         st.metric("Churn Probability", f"{probability*100:.2f}%")
 
-        if probability < 0.30:
+        if probability < 0.25:
 
             risk = "Low Risk"
 
             st.success("🟢 Low Risk")
 
-        elif probability < 0.60:
+        elif probability < 0.47:
 
             risk = "Medium Risk"
 
