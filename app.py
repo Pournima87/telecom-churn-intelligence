@@ -305,6 +305,18 @@ elif page == "Churn Prediction":
             ["Month-to-month","One year","Two year"]
         )
 
+        gender = st.selectbox("Gender", ["Male","Female"])
+
+        device_protection = st.selectbox("Device Protection", ["Yes","No","No internet service"])
+
+        streaming_tv = st.selectbox("Streaming TV", ["Yes","No","No internet service"])
+
+        streaming_movies = st.selectbox("Streaming Movies", ["Yes","No","No internet service"])
+
+        paperless_billing = st.selectbox("Paperless Billing", ["Yes","No"])
+
+        total_charges = st.number_input("Total Charges", min_value=0.0)
+
     with col2:
 
         internet_service = st.selectbox(
@@ -331,30 +343,19 @@ elif page == "Churn Prediction":
             "Online Security",
             ["Yes","No"]
         )
+        senior_citizen = st.selectbox("Senior Citizen", [0,1])
 
-        gender = st.selectbox("Gender", ["Male","Female"])
+        partner = st.selectbox("Partner", ["Yes","No"])
 
-    senior_citizen = st.selectbox("Senior Citizen", [0,1])
+        dependents = st.selectbox("Dependents", ["Yes","No"])
 
-    partner = st.selectbox("Partner", ["Yes","No"])
+        phone_service = st.selectbox("Phone Service", ["Yes","No"])
 
-    dependents = st.selectbox("Dependents", ["Yes","No"])
+        multiple_lines = st.selectbox("Multiple Lines", ["Yes","No","No phone service"])
 
-    phone_service = st.selectbox("Phone Service", ["Yes","No"])
+        online_backup = st.selectbox("Online Backup", ["Yes","No","No internet service"])
 
-    multiple_lines = st.selectbox("Multiple Lines", ["Yes","No","No phone service"])
-
-    online_backup = st.selectbox("Online Backup", ["Yes","No","No internet service"])
-
-    device_protection = st.selectbox("Device Protection", ["Yes","No","No internet service"])
-
-    streaming_tv = st.selectbox("Streaming TV", ["Yes","No","No internet service"])
-
-    streaming_movies = st.selectbox("Streaming Movies", ["Yes","No","No internet service"])
-
-    paperless_billing = st.selectbox("Paperless Billing", ["Yes","No"])
-
-    total_charges = st.number_input("Total Charges", min_value=0.0)
+    
 
     if st.button("Predict Churn Risk"):
 
