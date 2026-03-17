@@ -82,7 +82,6 @@ df = load_data()
 # LOAD MODEL
 # -------------------------------------------------
 
-@st.cache_resource
 def load_model():
 
     model = joblib.load("models/churn_pipeline.pkl")
