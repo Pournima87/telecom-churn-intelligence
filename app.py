@@ -96,12 +96,15 @@ model = load_model()
 # -------------------------------------------------
 
 def predict_churn(data):
-
     input_df = pd.DataFrame([data])
 
     try:
+        # Align columns with what the model saw during training
+        expected_cols = model.named_steps["preprocess"].feature_names_in_
+        input_df = input_df.reindex(columns=expected_cols, fill_value=None)
+
         probability = model.predict_proba(input_df)[0][1]
-    except Exception:
+    except Exception as e:
         st.error("Input format mismatch with trained model.")
         probability = 0.0
 
@@ -497,21 +500,27 @@ elif page == "Customer Risk Ranking":
 
     sample = df.sample(20).copy()
 
-# Remove columns the model should not see
+    sample = df.sample(20).copy()
+
     features_df = sample.drop(columns=["customerID", "Churn"], errors="ignore")
 
-# Predict churn probability
-    risk_scores = model.predict_proba(features_df)[:,1]
+# Align columns with training schema
+    expected_cols = model.named_steps["preprocess"].feature_names_in_
+    features_df = features_df.reindex(columns=expected_cols, fill_value=None)
+
+    risk_scores = model.predict_proba(features_df)[:, 1]
 
     sample["Risk Score"] = risk_scores
 
     sample["Risk Level"] = sample["Risk Score"].apply(
-    lambda x: "High Risk" if x > 0.6 else "Medium Risk" if x > 0.3 else "Low Risk"
+        lambda x: "High Risk" if x > 0.6 else "Medium Risk" if x > 0.3 else "Low Risk"
     )
 
     sample = sample.sort_values("Risk Score", ascending=False)
 
-    st.dataframe(sample[["customerID","Risk Score","Risk Level"]])
+    st.dataframe(sample[["customerID", "Risk Score", "Risk Level"]])
+
+
 
     st.subheader("Top Churn Drivers")
 
