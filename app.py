@@ -85,31 +85,19 @@ df = load_data()
 @st.cache_resource
 def load_model():
 
-    model = joblib.load("models/churn_model.pkl")
-    features = joblib.load("models/model_features.pkl")
+    model = joblib.load("models/churn_pipeline.pkl")
 
-    return model, features
+    return model
 
-model, model_features = load_model()
+model = load_model()
 
 # -------------------------------------------------
 # API FUNCTION
 # -------------------------------------------------
 
 def predict_churn(data):
-
-    # Convert user input to DataFrame
     input_df = pd.DataFrame([data])
-
-    # Apply same encoding as training
-    input_encoded = pd.get_dummies(input_df)
-
-    # Align with training features
-    input_encoded = input_encoded.reindex(columns=model_features, fill_value=0)
-
-    # Predict
-    probability = model.predict_proba(input_encoded)[0][1]
-
+    probability = model.predict_proba(input_df)[0][1]
     return probability
 
 # -------------------------------------------------
