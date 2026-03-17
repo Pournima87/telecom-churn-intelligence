@@ -407,8 +407,9 @@ elif page == "Churn Prediction":
 
         st.subheader("AI Risk Score")
 
-        st.progress(float(probability))
+        st.progress(float(probability,1.0))
         st.metric("Churn Probability", f"{probability*100:.2f}%")
+
 
         if probability < 0.25:
 
@@ -435,7 +436,7 @@ elif page == "Churn Prediction":
         c1, c2, c3 = st.columns(3)
 
         c1.metric("Tenure", f"{tenure} months")
-        c2.metric("Monthly Charges", f"${monthly_charges}")
+        c2.metric("Monthly Charges", f"${monthly_charges:,.2f}")
         c3.metric("Contract", contract)
 
         st.divider()
@@ -456,8 +457,11 @@ elif page == "Churn Prediction":
         if monthly_charges > 80:
             strategies.append("Provide loyalty discount")
 
-        for s in strategies:
-            st.write(f"• {s}")
+        if strategies:
+            for s in strategies:
+                st.write(f"• {s}")
+        else:
+            st.write("• Maintain current customer engagement strategy")
 
         st.divider()
 
@@ -469,9 +473,9 @@ elif page == "Churn Prediction":
 
         col1, col2, col3 = st.columns(3)
 
-        col1.metric("Monthly Revenue", f"${monthly_charges}")
-        col2.metric("Annual Value", f"${annual_revenue}")
-        col3.metric("Potential Revenue Saved", f"${saved_revenue}")
+        col1.metric("Monthly Revenue", f"${monthly_charges:,.2f}")
+        col2.metric("Annual Value", f"${annual_revenue:,.2f}")
+        col3.metric("Potential Revenue Saved", f"${saved_revenue:,.2f}")
 
 # -------------------------------------------------
 # CUSTOMER SEGMENTATION (IMPROVED)
@@ -558,11 +562,12 @@ elif page == "Customer Risk Ranking":
     features_df = data.drop(columns=["customerID","Churn"])
 
     # Align with training features
+    
     try:
         features_df = features_df.reindex(
-            columns=model.feature_names_in_,
-            fill_value=0
-        )
+        columns=model.named_steps["preprocess"].feature_names_in_,
+        fill_value=0
+    )
     except:
         pass
 
@@ -578,8 +583,17 @@ elif page == "Customer Risk Ranking":
                   "Low Risk"
     )
 
+    high_risk_count = (data["Risk Level"] == "High Risk").sum()
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total Customers", len(data))
+    col2.metric("High Risk Customers", high_risk_count)
+    col3.metric("Avg Risk Score", f"{data['Risk Score'].mean():.2f}")
+
     # Sort by highest risk
     top_risk = data.sort_values("Risk Score", ascending=False).head(20)
+    top_risk["Risk Score"] = top_risk["Risk Score"].round(3)
 
     st.dataframe(
         top_risk[[
@@ -617,6 +631,15 @@ elif page == "Customer Risk Ranking":
     except:
         st.info("Feature importance not available for this model.")
 
+    csv = top_risk.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        "Download High Risk Customers",
+        csv,
+        "high_risk_customers.csv",
+        "text/csv"
+    )
+
 # -------------------------------------------------
 # DATASET EXPLORER
 # -------------------------------------------------
@@ -653,3 +676,18 @@ else:
     - Flask Prediction API
     - Streamlit SaaS Dashboard
     """)
+
+    st.divider()
+
+    st.subheader("Model Performance")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Accuracy", "80%")
+    col2.metric("ROC-AUC", "0.84")
+    col3.metric("F1 Score", "0.63")
+
+st.divider()
+st.caption(
+"Telecom Customer Intelligence Platform | Built with Python, Scikit-Learn, and Streamlit"
+)
