@@ -498,6 +498,18 @@ elif page == "Customer Risk Ranking":
 
     st.dataframe(sample[["customerID","Risk Score","Risk Level"]])
 
+    st.subheader("Top Churn Drivers")
+
+    importance = model.named_steps["model"].coef_[0]
+    features = model.named_steps["preprocess"].get_feature_names_out()
+
+    importance_df = pd.DataFrame({
+        "Feature": features,
+        "Importance": importance
+    }).sort_values(by="Importance", ascending=False).head(10)
+
+    st.bar_chart(importance_df.set_index("Feature"))
+
 # -------------------------------------------------
 # DATASET EXPLORER
 # -------------------------------------------------
