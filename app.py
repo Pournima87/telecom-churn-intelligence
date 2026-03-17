@@ -532,46 +532,45 @@ elif page == "Customer Risk Ranking":
 
     sample = df.sample(20).copy()
 
-    sample = df.sample(20).copy()
+    # remove target + id
+    features_df = sample.drop(columns=["customerID","Churn"])
 
-    features_df = sample.drop(columns=["customerID", "Churn"], errors="ignore")
-
-# Align columns with training schema
-    expected_cols = model.named_steps["preprocess"].feature_names_in_
-    features_df = features_df.reindex(columns=expected_cols, fill_value=None)
-
-    risk_scores = model.predict_proba(features_df)[:, 1]
+    # Pipeline automatically preprocesses
+    risk_scores = model.predict_proba(features_df)[:,1]
 
     sample["Risk Score"] = risk_scores
 
     sample["Risk Level"] = sample["Risk Score"].apply(
-        lambda x: "High Risk" if x > 0.6 else "Medium Risk" if x > 0.3 else "Low Risk"
+        lambda x: "High Risk" if x > 0.6 else
+                  "Medium Risk" if x > 0.3 else
+                  "Low Risk"
     )
 
     sample = sample.sort_values("Risk Score", ascending=False)
 
-    st.dataframe(sample[["customerID", "Risk Score", "Risk Level"]])
-
-
+    st.dataframe(sample[["customerID","Risk Score","Risk Level"]])
 
     st.subheader("Top Churn Drivers")
 
     try:
+
         lr_model = model.named_steps["model"]
-        preprocessor = model.named_steps["preprocess"]
 
         importance = lr_model.coef_[0]
-        features = preprocessor.get_feature_names_out()
+
+        feature_names = model.named_steps["preprocess"].get_feature_names_out()
 
         importance_df = pd.DataFrame({
-            "Feature": features,
+            "Feature": feature_names,
             "Importance": importance
-        }).sort_values(by="Importance", ascending=False).head(10)
+        })
+
+        importance_df = importance_df.sort_values("Importance", ascending=False).head(10)
 
         st.bar_chart(importance_df.set_index("Feature"))
 
-    except Exception:
-        st.info("Feature importance available only for Logistic Regression.")
+    except:
+        st.info("Feature importance not available for this model.")
 
 # -------------------------------------------------
 # DATASET EXPLORER
