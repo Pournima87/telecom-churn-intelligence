@@ -357,30 +357,147 @@ elif page == "Churn Prediction":
     
 
     if st.button("Predict Churn Risk"):
+        all_features = [
+            'SeniorCitizen','tenure','MonthlyCharges','TotalCharges','CLV',
+            'AvgMonthlySpend','ServiceCount','HasInternet','CustomerSegment',
+            'gender_Male','Partner_Yes','Dependents_Yes','PhoneService_Yes',
+            'MultipleLines_No phone service','MultipleLines_Yes',
+            'InternetService_Fiber optic','InternetService_No',
+            'OnlineSecurity_No internet service','OnlineSecurity_Yes',
+            'OnlineBackup_No internet service','OnlineBackup_Yes',
+            'DeviceProtection_No internet service','DeviceProtection_Yes',
+            'TechSupport_No internet service','TechSupport_Yes',
+            'StreamingTV_No internet service','StreamingTV_Yes',
+            'StreamingMovies_No internet service','StreamingMovies_Yes',
+            'Contract_One year','Contract_Two year',
+            'PaperlessBilling_Yes',
+            'PaymentMethod_Credit card (automatic)',
+            'PaymentMethod_Electronic check',
+            'PaymentMethod_Mailed check',
+            'TenureGroup_12-24 Months',
+            'TenureGroup_24-48 Months',
+            'TenureGroup_Over 48 Months'
+        ]
 
-        data = {
-        "gender": gender,
-        "SeniorCitizen": senior_citizen,
-        "Partner": partner,
-        "Dependents": dependents,
-        "tenure": tenure,
-        "PhoneService": phone_service,
-        "MultipleLines": multiple_lines,
-        "InternetService": internet_service,
-        "OnlineSecurity": online_security,
-        "OnlineBackup": online_backup,
-        "DeviceProtection": device_protection,
-        "TechSupport": tech_support,
-        "StreamingTV": streaming_tv,
-        "StreamingMovies": streaming_movies,
-        "Contract": contract,
-        "PaperlessBilling": paperless_billing,
-        "PaymentMethod": payment_method,
-        "MonthlyCharges": monthly_charges,
-        "TotalCharges": total_charges
-    }
+        input_data = {feature: 0 for feature in all_features}
 
-        probability = predict_churn(data)
+    # -------- Numeric --------
+        input_data["SeniorCitizen"] = senior_citizen
+        input_data["tenure"] = tenure
+        input_data["MonthlyCharges"] = monthly_charges
+        input_data["TotalCharges"] = total_charges
+
+    # -------- Derived --------
+        input_data["AvgMonthlySpend"] = monthly_charges
+        input_data["CLV"] = monthly_charges * tenure
+        input_data["HasInternet"] = 0 if internet_service == "No" else 1
+
+        services = [
+            online_security,
+            online_backup,
+            device_protection,
+            tech_support,
+            streaming_tv,
+            streaming_movies
+        ]
+
+        input_data["ServiceCount"] = sum(1 for s in services if s == "Yes")
+
+        if tenure < 12 and monthly_charges > 80:
+            input_data["CustomerSegment"] = 3
+        elif tenure > 48:
+            input_data["CustomerSegment"] = 0
+        else:
+            input_data["CustomerSegment"] = 1
+
+    # -------- Gender --------
+        if gender == "Male":
+            input_data["gender_Male"] = 1
+
+    # -------- Family --------
+        if partner == "Yes":
+            input_data["Partner_Yes"] = 1
+
+        if dependents == "Yes":
+            input_data["Dependents_Yes"] = 1
+
+    # -------- Phone --------
+        if phone_service == "Yes":
+            input_data["PhoneService_Yes"] = 1
+
+        if multiple_lines == "Yes":
+            input_data["MultipleLines_Yes"] = 1
+        elif multiple_lines == "No phone service":
+            input_data["MultipleLines_No phone service"] = 1
+
+    # -------- Internet --------
+        if internet_service == "Fiber optic":
+            input_data["InternetService_Fiber optic"] = 1
+        elif internet_service == "No":
+            input_data["InternetService_No"] = 1
+
+    # -------- Services --------
+        if online_security == "Yes":
+            input_data["OnlineSecurity_Yes"] = 1
+        elif online_security == "No internet service":
+            input_data["OnlineSecurity_No internet service"] = 1
+
+        if online_backup == "Yes":
+            input_data["OnlineBackup_Yes"] = 1
+        elif online_backup == "No internet service":
+            input_data["OnlineBackup_No internet service"] = 1
+
+        if device_protection == "Yes":
+            input_data["DeviceProtection_Yes"] = 1
+        elif device_protection == "No internet service":
+            input_data["DeviceProtection_No internet service"] = 1
+
+        if tech_support == "Yes":
+            input_data["TechSupport_Yes"] = 1
+        elif tech_support == "No internet service":
+            input_data["TechSupport_No internet service"] = 1
+
+        if streaming_tv == "Yes":
+            input_data["StreamingTV_Yes"] = 1
+        elif streaming_tv == "No internet service":
+            input_data["StreamingTV_No internet service"] = 1
+
+        if streaming_movies == "Yes":
+            input_data["StreamingMovies_Yes"] = 1
+        elif streaming_movies == "No internet service":
+            input_data["StreamingMovies_No internet service"] = 1
+
+    # -------- Contract --------
+        if contract == "One year":
+            input_data["Contract_One year"] = 1
+        elif contract == "Two year":
+            input_data["Contract_Two year"] = 1
+
+    # -------- Billing --------
+        if paperless_billing == "Yes":
+            input_data["PaperlessBilling_Yes"] = 1
+
+        if payment_method == "Credit card (automatic)":
+            input_data["PaymentMethod_Credit card (automatic)"] = 1
+        elif payment_method == "Electronic check":
+            input_data["PaymentMethod_Electronic check"] = 1
+        elif payment_method == "Mailed check":
+            input_data["PaymentMethod_Mailed check"] = 1
+
+    # -------- Tenure Groups --------
+        if tenure <= 12:
+            pass
+        elif tenure <= 24:
+            input_data["TenureGroup_12-24 Months"] = 1
+        elif tenure <= 48:
+            input_data["TenureGroup_24-48 Months"] = 1
+        else:
+            input_data["TenureGroup_Over 48 Months"] = 1
+
+    # -------- Prediction --------
+        input_df = pd.DataFrame([input_data])
+
+        probability = model.predict_proba(input_df)[0][1]
 
         st.subheader("AI Risk Score")
 
