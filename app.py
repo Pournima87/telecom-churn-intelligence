@@ -100,7 +100,8 @@ def predict_churn(data):
 
     input_df = pd.DataFrame([data])
 
-    input_df = input_df[model_features]
+    # Match model features and fill missing ones
+    input_df = input_df.reindex(columns=model_features, fill_value=0)
 
     probability = model.predict_proba(input_df)[0][1]
 
