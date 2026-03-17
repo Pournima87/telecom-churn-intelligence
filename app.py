@@ -97,13 +97,15 @@ model, model_features = load_model()
 # API FUNCTION
 # -------------------------------------------------
 
-def predict_churn_api(data):
+def predict_churn(data):
 
-    url = "http://127.0.0.1:5000/predict"
+    input_df = pd.DataFrame([data])
 
-    response = requests.post(url, json=data)
+    input_df = input_df[model_features]
 
-    return response.json()
+    probability = model.predict_proba(input_df)[0][1]
+
+    return probability
 
 # -------------------------------------------------
 # SIDEBAR
@@ -344,9 +346,7 @@ elif page == "Churn Prediction":
             "OnlineSecurity": online_security
         }
 
-        result = predict_churn_api(data)
-
-        probability = result["churn_probability"]
+        probability = predict_churn(data)
 
         st.subheader("AI Risk Score")
 
