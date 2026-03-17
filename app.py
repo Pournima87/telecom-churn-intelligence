@@ -552,12 +552,12 @@ elif page == "Customer Risk Ranking":
 
     st.title("Top Customers Likely To Churn")
 
-    sample = df.sample(20).copy()
+    data = df.copy()
 
-    # remove target + id
-    features_df = sample.drop(columns=["customerID","Churn"])
+    # Remove target and ID for prediction
+    features_df = data.drop(columns=["customerID","Churn"])
 
-    # Align columns with model training features
+    # Align with training features
     try:
         features_df = features_df.reindex(
             columns=model.feature_names_in_,
@@ -566,20 +566,32 @@ elif page == "Customer Risk Ranking":
     except:
         pass
 
-    # Pipeline automatically preprocesses
-    risk_scores = model.predict_proba(features_df)[:, 1]
+    # Predict churn probability
+    risk_scores = model.predict_proba(features_df)[:,1]
 
-    sample["Risk Score"] = risk_scores
+    data["Risk Score"] = risk_scores
 
-    sample["Risk Level"] = sample["Risk Score"].apply(
+    # Risk categories
+    data["Risk Level"] = data["Risk Score"].apply(
         lambda x: "High Risk" if x > 0.45 else
                   "Medium Risk" if x > 0.25 else
                   "Low Risk"
     )
 
-    sample = sample.sort_values("Risk Score", ascending=False)
+    # Sort by highest risk
+    top_risk = data.sort_values("Risk Score", ascending=False).head(20)
 
-    st.dataframe(sample[["customerID","Risk Score","Risk Level"]])
+    st.dataframe(
+        top_risk[[
+            "customerID",
+            "tenure",
+            "MonthlyCharges",
+            "Contract",
+            "InternetService",
+            "Risk Score",
+            "Risk Level"
+        ]]
+    )
 
     st.subheader("Top Churn Drivers")
 
@@ -602,7 +614,7 @@ elif page == "Customer Risk Ranking":
 
         st.bar_chart(importance_df.set_index("Feature"))
 
-    except Exception as e:
+    except:
         st.info("Feature importance not available for this model.")
 
 # -------------------------------------------------
