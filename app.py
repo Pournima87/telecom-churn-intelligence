@@ -407,7 +407,7 @@ elif page == "Churn Prediction":
 
         st.subheader("AI Risk Score")
 
-        st.progress(float(probability,1.0))
+        st.progress(min(float(probability), 1.0))
         st.metric("Churn Probability", f"{probability*100:.2f}%")
 
 
