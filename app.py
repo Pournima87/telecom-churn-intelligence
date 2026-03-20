@@ -597,10 +597,9 @@ elif page == "Customer Risk Ranking":
 
     # Risk categories
     data["Risk Level"] = data["Risk Score"].apply(
-        lambda x: "High Risk" if x > 0.45 else
-                  "Medium Risk" if x > 0.25 else
-                  "Low Risk"
-    )
+    lambda x: "High Risk" if x > threshold else
+              "Medium Risk" if x > 0.3 else
+              "Low Risk")
 
     high_risk_count = (data["Risk Level"] == "High Risk").sum()
 
@@ -614,6 +613,16 @@ elif page == "Customer Risk Ranking":
     top_risk = data.sort_values("Risk Score", ascending=False).head(20)
     top_risk["Risk Score"] = top_risk["Risk Score"].round(3)
 
+    st.info(f"""
+Risk Segmentation Logic:
+
+• Low Risk: < 0.3  
+• Medium Risk: 0.3 – {threshold}  
+• High Risk: > {threshold}
+
+Model optimized for recall-based churn detection.
+""")
+
     st.dataframe(
         top_risk[[
             "customerID",
@@ -626,28 +635,26 @@ elif page == "Customer Risk Ranking":
         ]]
     )
 
-    st.subheader("Top Churn Drivers")
+    st.subheader("Key Factors Influencing Customer Churn")
 
     try:
-
-        lr_model = model.named_steps["model"]
-
-        importance = lr_model.coef_[0]
+        rf_model = model.named_steps["model"]
 
         feature_names = model.named_steps["preprocess"].get_feature_names_out()
+
+        importance = rf_model.feature_importances_
 
         importance_df = pd.DataFrame({
             "Feature": feature_names,
             "Importance": importance
-        })
+        }).sort_values(by="Importance", ascending=False).head(10)
 
-        importance_df = importance_df.sort_values(
-            "Importance", ascending=False
-        ).head(10)
+        st.subheader("Top Features Driving Churn")
 
         st.bar_chart(importance_df.set_index("Feature"))
 
-    except:
+    except Exception as e:
+        st.info("Feature importance not available.")
         st.info("Feature importance not available for this model.")
 
     csv = top_risk.to_csv(index=False).encode("utf-8")
@@ -705,6 +712,40 @@ else:
     col1.metric("Accuracy", "80%")
     col2.metric("ROC-AUC", "0.84")
     col3.metric("F1 Score", "0.63")
+
+    st.divider()
+
+    st.subheader("Model Comparison")
+
+    comparison_df = pd.DataFrame({
+    "Model": ["Logistic Regression", "Random Forest"],
+    "Recall (Churn)": [0.52, 0.72],
+    "Precision (Churn)": [0.63, 0.56],
+    "F1 Score": [0.57, 0.63],
+    "ROC-AUC": [0.84, 0.83]
+    })
+
+    st.dataframe(comparison_df)
+
+    st.success("""
+Final Model Selection: Random Forest
+
+Reason:
+• Higher Recall (~72%) → Identifies more churn customers
+• Better F1 Score → Balanced performance
+• Comparable ROC-AUC to Logistic Regression
+• Supports feature importance for explainability
+
+Business Impact:
+Maximizes detection of potential churn customers,
+reducing revenue loss.
+""")
+
+    st.info("""
+Note:
+Although Logistic Regression had slightly better ROC-AUC,
+it failed to capture enough churn customers (low recall).
+""")
 
 st.divider()
 st.caption(
