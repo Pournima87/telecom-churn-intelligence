@@ -122,6 +122,14 @@ page = st.sidebar.radio(
     ]
 )
 
+threshold = st.sidebar.slider(
+    "Set Churn Threshold (Optimize Recall)",
+    min_value=0.1,
+    max_value=0.9,
+    value=0.4,
+    step=0.05
+)
+
 # -------------------------------------------------
 # DASHBOARD
 # -------------------------------------------------
@@ -411,13 +419,13 @@ elif page == "Churn Prediction":
         st.metric("Churn Probability", f"{probability*100:.2f}%")
 
 
-        if probability < 0.25:
+        if probability < 0.3:
 
             risk = "Low Risk"
 
             st.success("🟢 Low Risk")
 
-        elif probability < 0.47:
+        elif probability < threshold:
 
             risk = "Medium Risk"
 
@@ -476,6 +484,17 @@ elif page == "Churn Prediction":
         col1.metric("Monthly Revenue", f"${monthly_charges:,.2f}")
         col2.metric("Annual Value", f"${annual_revenue:,.2f}")
         col3.metric("Potential Revenue Saved", f"${saved_revenue:,.2f}")
+
+        st.divider()
+
+        st.info(f"""Decision Logic:
+
+                • Threshold = {threshold}
+
+                • Lower threshold → Higher Recall (catch more churners)
+
+                • Model optimized for business goal: minimizing churn loss
+""")
 
 # -------------------------------------------------
 # CUSTOMER SEGMENTATION (IMPROVED)
