@@ -441,11 +441,12 @@ elif page == "Churn Prediction":
 
         st.subheader("Customer Risk Profile")
 
-        c1, c2, c3 = st.columns(3)
+        c1, c2, c3, c4 = st.columns(4)
 
         c1.metric("Tenure", f"{tenure} months")
         c2.metric("Monthly Charges", f"${monthly_charges:,.2f}")
         c3.metric("Contract", contract)
+        c4.metric("Customer Lifetime Value", f"${monthly_charges * tenure:,.2f}")
 
         st.divider()
 
